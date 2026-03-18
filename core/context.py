@@ -7,8 +7,9 @@ from z3 import *
 
 
 # Define parameters
-ω1, ω2, ω3, ω4 = (RealVal(1), RealVal(2), RealVal(3), RealVal(4))
-
+ω1, ω2, ω3, ω4 = RealVal(1), RealVal(2), RealVal(3), RealVal(4)
+W1, W2 = RealVal(1), RealVal(1)
+α = RealVal(1)
 
 
 
@@ -82,8 +83,8 @@ class RSPContext:
         ]
         return [*internal_constraint, *external_constraint]
 
-    def with_sequence(self, seq, W=1) -> RSPSequenceContext:
-        return RSPSequenceContext(self, tuple(seq), W)
+    def with_sequence(self, seq) -> RSPSequenceContext:
+        return RSPSequenceContext(self, tuple(seq))
 
 
 
@@ -112,7 +113,6 @@ def make_context(aircraft: [str]) -> RSPContext:
 class RSPSequenceContext:
     ctx: RSPContext
     seq: tuple
-    W: ArithRef | int | float = 1
 
     # Define a check to enforce that the given sequence is a corret permutation of aircraft.
     def __post_init__(self):
@@ -136,13 +136,12 @@ class RSPSequenceContext:
     # Define a property to access per-aircraft delay costs (since these are sequence dependent)
     @cached_property
     def delay(self):
-        W = RealVal(self.W) if not is_expr(self.W) else self.W
-        return {ac: W * (self.takeoff[ac] - self.ctx.b[ac]) for ac in self.seq}
+        return {ac: W1 * ((self.takeoff[ac] - self.ctx.b[ac]) ** α) for ac in self.seq}
 
     # Define a property to access per-aircraft CTOT penalties (since these are sequence dependent)
     @cached_property
     def ctot(self):
-        def C(t, lc) -> ArithRef: return If(t <= lc, RealVal(0), If(t <= lc + 300, ω1 * (t - lc) + ω2, ω3 * (t - lc) + ω4))
+        def C(t, lc) -> ArithRef: return W2 * If(t <= lc, RealVal(0), If(t <= lc + 300, ω1 * (t - lc) + ω2, ω3 * (t - lc) + ω4))
         return {ac: C(self.takeoff[ac], self.ctx.lc[ac]) for ac in self.seq }
 
     # Define a property to access makespan (highest takeoff time in sequence)
@@ -172,6 +171,6 @@ class RSPSequenceContext:
 def get_sequences() -> (RSPSequenceContext, RSPSequenceContext, RSPContext):
     aircraft = ["ψ₁", "i", "ψ₂", "j", "ψ₃"]
     ctx = make_context(aircraft)
-    S1 = ctx.with_sequence(["ψ₁", "i", "ψ₂", "j", "ψ₃"], W=1)
-    S2 = ctx.with_sequence(["ψ₁", "j", "ψ₂", "i", "ψ₃"], W=1)
+    S1 = ctx.with_sequence(["ψ₁", "i", "ψ₂", "j", "ψ₃"])
+    S2 = ctx.with_sequence(["ψ₁", "j", "ψ₂", "i", "ψ₃"])
     return S1, S2, ctx
