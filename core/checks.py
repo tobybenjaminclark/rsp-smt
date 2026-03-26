@@ -3,8 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 from core.context import RSPContext
 from z3 import BoolRef, CheckSatResult, ModelRef, Not, Solver, sat, unsat
-
-
+from core.format import PrintableRSPModel
 
 
 
@@ -13,7 +12,7 @@ RSPModelRef = ModelRef
 
 # Define a satisfiable Z3 model relevant to pruning-rule verification.
 @dataclass(frozen=True)
-class RSPSatModel:
+class RSPSatModel(PrintableRSPModel):
     model: RSPModelRef
 
 # Define a model witnessing that the premises are satisfiable.

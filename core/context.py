@@ -69,19 +69,12 @@ class RSPContext:
         )
 
 
-    # Define a method to enfoce that two aircraft are δ-equivalent (identical separation requirements)
+    # Define a method to enforce that two aircraft are δ-equivalent (identical separation requirements)
     def separation_equivalence(self, i: str, j: str):
-        # Enforce that i & j have positive, identical separation requirements in regard to each other.
-        internal_constraint = [
-            self.delta[(i, j)] > 0, self.delta[(j, i)] > 0,
-            self.delta[(i, j)] == self.delta[(j, i)],
+        # Enforce that i & j have identical separation requirements in regard to all aircraft.
+        return [
+            And(self.delta[(i, x)] == self.delta[(j, x)], self.delta[(x, i)] == self.delta[(x, j)]) for x in self.aircraft
         ]
-
-        # Enforce that i & j have identical separation requirements in regard to all other aircraft.
-        external_constraint = [
-            And(self.delta[(i, x)] == self.delta[(j, x)], self.delta[(x, i)] == self.delta[(x, j)]) for x in filter(lambda k: k not in (i, j), self.aircraft)
-        ]
-        return [*internal_constraint, *external_constraint]
 
     def with_sequence(self, seq) -> RSPSequenceContext:
         return RSPSequenceContext(self, tuple(seq))
