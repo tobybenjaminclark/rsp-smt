@@ -5,6 +5,10 @@ from z3 import *
 
 
 
+# Metavariable
+PHI_SIZE = 2  # Number of φ elements per block
+
+
 
 # Define parameters
 ω1, ω2, ω3, ω4 = RealVal(1), RealVal(2), RealVal(3), RealVal(4)
@@ -161,9 +165,20 @@ class RSPSequenceContext:
 
 # Define a function to retrieve 2 sequences, differing only by the swapping the positions of
 # aircraft i and j. Also provides the RSPContext for access to aircraft attributes.
+
+
+# Helper to convert digits to unicode subscripts
+SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+
+def sub(n: int) -> str:
+    return str(n).translate(SUBSCRIPTS)
+
+def make_phi_block(k: int) -> list[str]:
+    return [f"ψ{sub(k)}{sub(t)}" for t in range(1, PHI_SIZE + 1)]
+
 def get_sequences() -> (RSPSequenceContext, RSPSequenceContext, RSPContext):
-    aircraft = ["ψ₁", "i", "ψ₂", "j", "ψ₃"]
-    ctx = make_context(aircraft)
-    S1 = ctx.with_sequence(["ψ₁", "i", "ψ₂", "j", "ψ₃"])
-    S2 = ctx.with_sequence(["ψ₁", "j", "ψ₂", "i", "ψ₃"])
+    psi1, psi2, psi3 = make_phi_block(1), make_phi_block(2), make_phi_block(3)
+    ctx = make_context(psi1 + ["i"] + psi2 + ["j"] + psi3)
+    S1, S2 = ctx.with_sequence(psi1 + ["i"] + psi2 + ["j"] + psi3), ctx.with_sequence(psi1 + ["j"] + psi2 + ["i"] + psi3)
+
     return S1, S2, ctx
