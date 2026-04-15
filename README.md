@@ -1,7 +1,7 @@
 
 # Automated Verification of Pruning Rules for Runway Sequencing
 
-> **Toby Clark, Jason Atkin, Geert De Maere** \
+> **Toby Benjamin Clark, Jason Atkin, Geert De Maere** \
 > School of Computer Science, University of Nottingham, UK
 
  **Abstract:** Exact approaches to the Runway Sequencing Problem (RSP) rely on pruning rules to make optimisation tractable. However, these rules are typically proven manually,
