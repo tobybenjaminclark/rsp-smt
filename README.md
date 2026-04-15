@@ -16,7 +16,7 @@ Optimisation · Satisfiability Modulo Theories (SMT) · Formal Methods
 
 
 This repository accompanies a PATAT 2026 conference submission on the automated verification of pruning rules for the Runway Sequencing Problem (RSP). It uses the Z3 Theorem Prover
-(SMT Solver) to verify that pruning rules are both correct (never prune optimal soltuions) and non-vacuous (premises are satisfiable in atleast one feasible instance). Our approach
+(SMT Solver) to verify that pruning rules are both correct (never prune optimal solutions) and non-vacuous (premises are satisfiable in at least one feasible instance). Our approach
 is implemented in `core/` with accompanying encodings of pruning rules contained in `notebooks/`. The notebooks in this repository provide compact, executable proof artefacts for
 the rules discussed in the paper. This repository is intended as a research artefact rather than a production scheduling system. Its purpose is to make the logical structure of the pruning rules explicit, executable, and independently checkable.
 
@@ -88,7 +88,7 @@ res = verify_pruning_rule(ctx, premises, claim)
 print(f"\nComplete Order Makespan: {res}\n")
 ```
 
-The log output records the two solver checks: one for non-vacuity and one for correctness. The final result then reports whether both checks succeeded. Both the logs, and result for this check are shown below.
+The log output records the two solver checks: one for non-vacuity and one for correctness. The final result then reports whether both checks succeeded. Both the logs and result for this check are shown below.
 
 >`[12:00:00]` Building default sequence pair with ψ-count = 2 \
 `[12:00:00]` Creating RSP context for 8 aircraft \

@@ -136,7 +136,7 @@ class Unverified:
 
 
 
-# Define a function to verify a pruning rule is both correct and non-vaccuous.
+# Define a function to verify a pruning rule is both correct and non-vacuous.
 def verify_pruning_rule(ctx, premises: [BoolRef], claim: BoolRef) -> Verified | Unverified:
     premises = list(premises)
 
@@ -144,7 +144,7 @@ def verify_pruning_rule(ctx, premises: [BoolRef], claim: BoolRef) -> Verified | 
     non_vacuity = check_non_vacuous(ctx, premises)
     correctness = check_correct(ctx, premises, claim)
 
-    # If we are able to verify the rule triggers in atleast 1 feasible instance, and is correct,
+    # If we are able to verify the rule triggers in at least one feasible instance, and is correct,
     # the pruning rule is verified. (Therefore, return the Verified object).
     if isinstance(non_vacuity, Example) and isinstance(correctness, CorrectnessCertificate):
         return Verified(
@@ -152,7 +152,7 @@ def verify_pruning_rule(ctx, premises: [BoolRef], claim: BoolRef) -> Verified | 
             example=non_vacuity,
         )
 
-    # Otherwise, there was either a counterexample or it was vaccuous, so return Unverified.
+    # Otherwise, there was either a counterexample or it was vacuous, so return Unverified.
     return Unverified(
         counterexample=correctness if isinstance(correctness, Counterexample) else None,
         vacuous_certificate=non_vacuity if isinstance(non_vacuity, VacuousCertificate) else None,

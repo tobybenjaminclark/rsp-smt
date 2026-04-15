@@ -120,7 +120,7 @@ class RSPSequenceContext:
     ctx: RSPContext
     seq: tuple
 
-    # Define a check to enforce that the given sequence is a corret permutation of aircraft.
+    # Define a check to enforce that the given sequence is a correct permutation of aircraft.
     def __post_init__(self):
         if set(self.seq) != set(self.ctx.aircraft):
             raise ValueError("Sequence must be a permutation of base.aircraft")
