@@ -1,11 +1,14 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from time import perf_counter
 from typing import Optional
 from core.context import RSPContext
 from z3 import BoolRef, CheckSatResult, ModelRef, Not, Solver, sat, unsat
 from core.format import PrintableRSPModel
+from core.log import get_logger
 
 
+log = get_logger(__name__)
 
 # Define a type alias to differentiate models in RSP from general Z3 models.
 RSPModelRef = ModelRef
@@ -52,12 +55,22 @@ class VacuousCertificate(Certificate):
 
 
 
+def _check_solver(solver: Solver, label: str) -> CheckSatResult:
+    start = perf_counter()
+    res = solver.check()
+    elapsed_ms = round((perf_counter() - start) * 1000)
+    log.info("Finished solver check for %s (%s, took %dms)", label, res, elapsed_ms)
+    return res
+
+
 # Define a function to check whether the premises of a pruning rule are satisfiable.
 def check_non_vacuous(ctx: RSPContext, premises: [BoolRef]) -> VacuousCertificate | Example:
-    all_premises = list(premises) + ctx.foundational_constraints
+    premises = list(premises)
+    all_premises = premises + ctx.foundational_constraints
+    log.info("Checking non-vacuity with %d premises and %d foundational constraints", len(premises), len(ctx.foundational_constraints))
     s: Solver = Solver()
     s.add(*all_premises)
-    res = s.check()
+    res = _check_solver(s, "non-vacuity")
 
     if res == sat:      return Example(s.model())
     if res == unsat:    return VacuousCertificate(res)
@@ -67,11 +80,13 @@ def check_non_vacuous(ctx: RSPContext, premises: [BoolRef]) -> VacuousCertificat
 
 # Define a function to check whether a pruning rule is logically correct.
 def check_correct(ctx: RSPContext, premises: [BoolRef], claim: BoolRef) -> CorrectnessCertificate | Counterexample:
-    all_premises = list(premises) + ctx.foundational_constraints
+    premises = list(premises)
+    all_premises = premises + ctx.foundational_constraints
+    log.info("Checking correctness with %d premises and %d foundational constraints", len(premises), len(ctx.foundational_constraints))
     s: Solver = Solver()
     s.add(*all_premises)
     s.add(Not(claim))
-    res = s.check()
+    res = _check_solver(s, "correctness")
 
     if res == unsat:    return CorrectnessCertificate(res)
     if res == sat:      return Counterexample(s.model())
@@ -123,6 +138,7 @@ class Unverified:
 
 # Define a function to verify a pruning rule is both correct and non-vaccuous.
 def verify_pruning_rule(ctx, premises: [BoolRef], claim: BoolRef) -> Verified | Unverified:
+    premises = list(premises)
 
     # Invoke checks for rule correctness and non-vaccuity.
     non_vacuity = check_non_vacuous(ctx, premises)

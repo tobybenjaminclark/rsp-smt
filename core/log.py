@@ -5,6 +5,8 @@ import os
 import sys
 
 
+# Technical logging helper only; the code in this file is not part of the symbolic RSP
+# model or the wider research contribution.
 LOGGER_NAME = "core"
 DEFAULT_LEVEL = "INFO"
 DEFAULT_FORMAT = "[%(asctime)s] %(message)s"
@@ -12,6 +14,8 @@ DEFAULT_DATE_FORMAT = "%H:%M:%S"
 _configured = False
 
 
+
+# Define a helper to map user-provided log levels onto Python logging levels.
 def _resolve_level(level: int | str | None) -> int:
     if level is None:
         level = os.getenv("RSP_SMT_LOG_LEVEL", DEFAULT_LEVEL)
@@ -23,6 +27,8 @@ def _resolve_level(level: int | str | None) -> int:
     raise ValueError(f"Unknown log level: {level}")
 
 
+
+# Define a lightweight default configuration for notebook/terminal output.
 def configure_logging(level: int | str | None = None) -> None:
     global _configured
 
@@ -37,6 +43,7 @@ def configure_logging(level: int | str | None = None) -> None:
         _configured = True
         return
 
+    # Send logs to stdout so Jupyter displays them as ordinary cell output.
     handler = logging.StreamHandler(sys.stdout)
     handler._rsp_smt_handler = True
     handler.setFormatter(logging.Formatter(DEFAULT_FORMAT, datefmt=DEFAULT_DATE_FORMAT))
@@ -44,6 +51,8 @@ def configure_logging(level: int | str | None = None) -> None:
     _configured = True
 
 
+
+# Define a helper to retrieve a named logger after applying the default setup.
 def get_logger(name: str | None = None) -> logging.Logger:
     configure_logging()
     if name is None:

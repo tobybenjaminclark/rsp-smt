@@ -31,6 +31,7 @@ def _print_table(title: str, headers: [str], rows: [[str]]) -> None:
 class PrintableRSPModel:
     def print_model(self: "RSPSatModel", ctx: RSPContext, sequences: [RSPSequenceContext]) -> None:
         model = self.model
+        sequence_count = len(sequences) if sequences else 0
 
         _print_table(
             "Aircraft",

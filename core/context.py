@@ -1,9 +1,12 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from functools import cached_property, reduce
 from itertools import product
 from z3 import *
+from core.log import get_logger
 
 
+log = get_logger(__name__)
 
 # Metavariable
 PHI_SIZE = 2  # Number of φ elements per block
@@ -66,21 +69,26 @@ class RSPContext:
     # Define a method to conjoin all foundational constraints.
     @cached_property
     def foundational_constraints(self):
-        return (
+        constraints = (
             self.variable_constraints
             + self.ordered_window_constraints
             + self.release_time_constraints
         )
+        log.debug("Built %d foundational constraints for %d aircraft", len(constraints), len(self.aircraft))
+        return constraints
 
 
     # Define a method to enforce that two aircraft are δ-equivalent (identical separation requirements)
     def separation_equivalence(self, i: str, j: str):
         # Enforce that i & j have identical separation requirements in regard to all aircraft.
-        return [
+        constraints = [
             And(self.delta[(i, x)] == self.delta[(j, x)], self.delta[(x, i)] == self.delta[(x, j)]) for x in self.aircraft
         ]
+        log.debug("Built %d separation-equivalence constraints for %s and %s", len(constraints), i, j)
+        return constraints
 
     def with_sequence(self, seq) -> RSPSequenceContext:
+        log.debug("Creating sequence context: %s", " -> ".join(seq))
         return RSPSequenceContext(self, tuple(seq))
 
 
@@ -89,6 +97,7 @@ class RSPContext:
 # Constructor for RSPContext
 def make_context(aircraft: [str]) -> RSPContext:
     aircraft = tuple(aircraft)
+    log.info("Creating RSP context for %d aircraft", len(aircraft))
     return RSPContext(
         aircraft =   aircraft,
         r =          {ac: Real(f"r-{ac}") for ac in aircraft},
@@ -115,12 +124,14 @@ class RSPSequenceContext:
     def __post_init__(self):
         if set(self.seq) != set(self.ctx.aircraft):
             raise ValueError("Sequence must be a permutation of base.aircraft")
+        log.debug("Validated sequence context with %d aircraft", len(self.seq))
 
 
     # Define a property to access takeoff times (since these are sequence dependent)
     @cached_property
     def takeoff(self):
         seq = self.seq
+        log.debug("Building takeoff expressions for sequence: %s", " -> ".join(seq))
         T = {seq[0]: self.ctx.r[seq[0]]}
         for k in range(1, len(seq)):
             preds = seq[:k]
@@ -177,6 +188,7 @@ def make_phi_block(k: int) -> list[str]:
     return [f"ψ{sub(k)}{sub(t)}" for t in range(1, PHI_SIZE + 1)]
 
 def get_sequences() -> (RSPSequenceContext, RSPSequenceContext, RSPContext):
+    log.info("Building default sequence pair with ψ-count = %d", PHI_SIZE)
     psi1, psi2, psi3 = make_phi_block(1), make_phi_block(2), make_phi_block(3)
     ctx = make_context(psi1 + ["i"] + psi2 + ["j"] + psi3)
     S1, S2 = ctx.with_sequence(psi1 + ["i"] + psi2 + ["j"] + psi3), ctx.with_sequence(psi1 + ["j"] + psi2 + ["i"] + psi3)
