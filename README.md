@@ -50,7 +50,7 @@ Then run the individual cells in:
 - [notebooks/conditional_orders.ipynb](notebooks/conditional_orders.ipynb).
 - [notebooks/additional_orders.ipynb](notebooks/additional_orders.ipynb)
 
-### Interpretation of Results
+#### Interpretation of Results
 
 The verification code distinguishes four proof-relevant outcomes:
 
@@ -63,3 +63,38 @@ At the top level:
 
 - `Verified` means the pruning rule is both correct and non-vacuous
 - `Unverified` means either a counterexample exists, the rule is vacuous, or both
+
+#### Example Cell
+
+The cell below encodes a complete-order pruning rule as an SMT problem. It constructs two symbolic sequences that differ only by swapping aircraft `i` and `j`, states the rule premises as Z3 constraints, and asks whether the makespan claim follows.
+
+```python
+from core.context import *
+from core.checks import *
+
+# Construct the two sequences that differ only in the relative order of i and j.
+S1, S2, ctx = get_sequences()
+
+# State the premises: order the release times and require i and j to be separation-equivalent.
+premises = [
+    ctx.r["i"] <= ctx.r["j"],   *ctx.separation_equivalence("i", "j"),
+]
+
+# Verify that the makespan of S1 is no larger than that of S2.
+claim = S1.makespan <= S2.makespan
+
+# Ask the solver to certify the claim.
+res = verify_pruning_rule(ctx, premises, claim)
+print(f"\nComplete Order Makespan: {res}\n")
+```
+
+The log output records the two solver checks: one for non-vacuity and one for correctness. The final result then reports whether both checks succeeded. Both the logs, and result for this check are shown below.
+
+>`[12:00:00]` Building default sequence pair with ψ-count = 2 \
+`[12:00:00]` Creating RSP context for 8 aircraft \
+`[12:00:00]` Checking non-vacuity with 9 premises and 136 foundational constraints \
+`[12:00:00]` Finished solver check for non-vacuity (sat, took 3ms) \
+`[12:00:00]` Checking correctness with 9 premises and 136 foundational constraints \
+`[12:00:00]` Finished solver check for correctness (unsat, took 70ms) \
+\
+**Complete Order Makespan: Verified**
