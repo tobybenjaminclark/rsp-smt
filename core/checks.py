@@ -4,7 +4,6 @@ from time import perf_counter
 from typing import Optional
 from core.context import RSPContext
 from z3 import BoolRef, CheckSatResult, ModelRef, Not, Solver, sat, unsat
-from core.format import PrintableRSPModel
 from core.log import get_logger
 
 
@@ -15,7 +14,7 @@ RSPModelRef = ModelRef
 
 # Define a satisfiable Z3 model relevant to pruning-rule verification.
 @dataclass(frozen=True)
-class RSPSatModel(PrintableRSPModel):
+class RSPSatModel():
     model: RSPModelRef
 
 # Define a model witnessing that the premises are satisfiable.
